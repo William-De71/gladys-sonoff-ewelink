@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="560" viewBox="0 0 960 560" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>From the scan to the state of a Sonoff device</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0 0 L10 5 L0 10z" fill="#33424d"/>
+    </marker>
+  </defs>
+  <rect width="960" height="560" fill="#ffffff"/>
+  <g font-size="15" font-weight="700" text-anchor="middle">
+    <rect x="30" y="20" width="150" height="40" rx="8" fill="#e8f1fb" stroke="#2f6fb5"/>
+    <text x="105" y="46" fill="#1d4f86">User</text>
+    <rect x="250" y="20" width="150" height="40" rx="8" fill="#e8f1fb" stroke="#2f6fb5"/>
+    <text x="325" y="46" fill="#1d4f86">Gladys</text>
+    <rect x="470" y="20" width="170" height="40" rx="8" fill="#eef8f1" stroke="#2e8b57"/>
+    <text x="555" y="46" fill="#1f6b41">Integration</text>
+    <rect x="710" y="20" width="200" height="40" rx="8" fill="#fff8e6" stroke="#c9952b"/>
+    <text x="810" y="46" fill="#8a6414">Sonoff device</text>
+  </g>
+  <g stroke="#c1ccd4" stroke-width="2" stroke-dasharray="4 4">
+    <line x1="105" y1="60" x2="105" y2="540"/>
+    <line x1="325" y1="60" x2="325" y2="540"/>
+    <line x1="555" y1="60" x2="555" y2="540"/>
+    <line x1="810" y1="60" x2="810" y2="540"/>
+  </g>
+  <g font-size="13" fill="#33424d" stroke="#33424d" stroke-width="1.8">
+    <line x1="105" y1="95" x2="321" y2="95" marker-end="url(#a)"/>
+    <text x="215" y="88" stroke="none" text-anchor="middle">Discover tab: Scan</text>
+
+    <line x1="325" y1="130" x2="551" y2="130" marker-end="url(#a)"/>
+    <text x="440" y="123" stroke="none" text-anchor="middle">scan request (WebSocket)</text>
+
+    <line x1="555" y1="165" x2="329" y2="165" marker-end="url(#a)"/>
+    <text x="440" y="158" stroke="none" text-anchor="middle">scanNetwork('mdns')</text>
+
+    <line x1="806" y1="195" x2="329" y2="195" stroke-dasharray="6 4" marker-end="url(#a)"/>
+    <text x="570" y="188" stroke="none" text-anchor="middle">_ewelink._tcp record: id, IP, encrypted state</text>
+
+    <line x1="325" y1="225" x2="551" y2="225" stroke-dasharray="6 4" marker-end="url(#a)"/>
+    <text x="440" y="218" stroke="none" text-anchor="middle">raw records</text>
+
+    <line x1="555" y1="260" x2="329" y2="260" marker-end="url(#a)"/>
+    <text x="440" y="253" stroke="none" text-anchor="middle">publishDiscoveredDevices</text>
+
+    <line x1="105" y1="300" x2="321" y2="300" marker-end="url(#a)"/>
+    <text x="215" y="293" stroke="none" text-anchor="middle">Create the device</text>
+
+    <line x1="105" y1="345" x2="321" y2="345" marker-end="url(#a)"/>
+    <text x="215" y="338" stroke="none" text-anchor="middle">Turn on (dashboard, scene)</text>
+
+    <line x1="325" y1="375" x2="551" y2="375" marker-end="url(#a)"/>
+    <text x="440" y="368" stroke="none" text-anchor="middle">setValue</text>
+
+    <line x1="555" y1="410" x2="806" y2="410" marker-end="url(#a)"/>
+    <text x="682" y="403" stroke="none" text-anchor="middle">POST /zeroconf/switch (AES)</text>
+
+    <line x1="806" y1="445" x2="559" y2="445" stroke-dasharray="6 4" marker-end="url(#a)"/>
+    <text x="682" y="438" stroke="none" text-anchor="middle">answer: new state (AES)</text>
+
+    <line x1="555" y1="480" x2="329" y2="480" marker-end="url(#a)"/>
+    <text x="440" y="473" stroke="none" text-anchor="middle">publishChangedStates + transport badge</text>
+
+    <line x1="325" y1="515" x2="109" y2="515" stroke-dasharray="6 4" marker-end="url(#a)"/>
+    <text x="215" y="508" stroke="none" text-anchor="middle">the switch shows "on"</text>
+  </g>
+  <text x="682" y="530" font-size="12" fill="#6b7a85" text-anchor="middle">LAN unreachable: same command through the eWeLink cloud</text>
+</svg>

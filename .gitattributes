@@ -1,0 +1,7 @@
+# Normalize line endings: the release script edits these files in place.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary

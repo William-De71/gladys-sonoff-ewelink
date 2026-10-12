@@ -1,0 +1,90 @@
+# -----------------------------------------------------------------------------
+# Continuous integration: the quality gate of every pull request AND of every
+# release (release.yml calls this workflow before computing a version: no green
+# CI, no release). It has no `push` trigger on main on purpose: the Release
+# workflow runs it there, a second trigger would run it twice.
+#
+#   1. Prettier  -> consistent formatting;
+#   2. ESLint    -> real mistakes (undefined variables, dead code...);
+#   3. Tests     -> `node --test`, against the fake Gladys of the SDK;
+#   4. Docker    -> the image builds (amd64 only, never pushed);
+#   5. Store     -> the manifest passes the store admission checks (the image
+#                   itself is checked after the release, it does not exist yet).
+# -----------------------------------------------------------------------------
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    name: Lint & test (Node ${{ matrix.node-version }})
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check formatting (Prettier)
+        run: npm run format:check
+
+      - name: Lint (ESLint)
+        run: npm run lint
+
+      - name: Run tests
+        run: npm test
+
+  store:
+    runs-on: ubuntu-latest
+    name: Store admission checks
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Validate the manifest, the docs and the cover
+        run: npx --yes github:GladysAssistant/integration-store . --skip-image-check
+
+  docker:
+    runs-on: ubuntu-latest
+    name: Docker build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build (no push)
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          platforms: linux/amd64
+          push: false

@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>Illustration of the Sonoff network and energy widgets (not a screenshot)</title>
+  <rect width="900" height="420" fill="#f4f6f8"/>
+  <text x="890" y="410" text-anchor="end" font-size="12" font-style="italic" fill="#8a96a0">illustration · not a screenshot</text>
+
+  <!-- Network status card -->
+  <rect x="20" y="20" width="410" height="370" rx="10" fill="#ffffff" stroke="#dde3e8"/>
+  <text x="40" y="54" font-size="17" font-weight="700" fill="#33424d">Sonoff network</text>
+  <g font-size="12" fill="#6b7a85" text-anchor="middle">
+    <rect x="40" y="72" width="110" height="68" rx="8" fill="#eaf7ef"/>
+    <text x="95" y="92">Local</text>
+    <text x="95" y="124" font-size="26" font-weight="700" fill="#2e8b57">12</text>
+    <rect x="160" y="72" width="110" height="68" rx="8" fill="#eaf2fb"/>
+    <text x="215" y="92">Cloud</text>
+    <text x="215" y="124" font-size="26" font-weight="700" fill="#2f6fb5">3</text>
+    <rect x="280" y="72" width="130" height="68" rx="8" fill="#fbecec"/>
+    <text x="345" y="92">Offline</text>
+    <text x="345" y="124" font-size="26" font-weight="700" fill="#c0392b">1</text>
+  </g>
+  <g font-size="13" fill="#33424d">
+    <circle cx="48" cy="170" r="5" fill="#2e8b57"/><text x="62" y="175">eWeLink cloud</text><text x="410" y="175" text-anchor="end">Connected</text>
+    <circle cx="48" cy="198" r="5" fill="#2e8b57"/><text x="62" y="203">Local network</text><text x="410" y="203" text-anchor="end">Active</text>
+    <circle cx="48" cy="226" r="5" fill="#8a96a0"/><text x="62" y="231">API calls this month</text><text x="410" y="231" text-anchor="end">1240 / 50000</text>
+  </g>
+  <rect x="40" y="250" width="370" height="54" rx="8" fill="#fafbfc" stroke="#e5e9ec"/>
+  <text x="56" y="272" font-size="13" font-weight="700" fill="#33424d">Garage gate</text>
+  <text x="56" y="292" font-size="12" fill="#6b7a85">Not answering on the local network: cloud in use.</text>
+  <rect x="318" y="262" width="80" height="22" rx="11" fill="#fdf1dc"/>
+  <text x="358" y="278" font-size="12" text-anchor="middle" fill="#a66b00">Degraded</text>
+  <rect x="40" y="330" width="96" height="34" rx="17" fill="#eef1f4"/>
+  <text x="88" y="352" font-size="13" text-anchor="middle" fill="#33424d">Rescan</text>
+
+  <!-- Energy card -->
+  <rect x="460" y="20" width="420" height="370" rx="10" fill="#ffffff" stroke="#dde3e8"/>
+  <text x="480" y="54" font-size="17" font-weight="700" fill="#33424d">Sonoff energy · Washing machine</text>
+  <g font-size="12" fill="#6b7a85" text-anchor="middle">
+    <rect x="480" y="72" width="88" height="62" rx="8" fill="#f4f6f8"/><text x="524" y="90">Power</text><text x="524" y="120" font-size="18" font-weight="700" fill="#33424d">1 204 W</text>
+    <rect x="576" y="72" width="88" height="62" rx="8" fill="#f4f6f8"/><text x="620" y="90">Voltage</text><text x="620" y="120" font-size="18" font-weight="700" fill="#33424d">231 V</text>
+    <rect x="672" y="72" width="88" height="62" rx="8" fill="#f4f6f8"/><text x="716" y="90">Current</text><text x="716" y="120" font-size="18" font-weight="700" fill="#33424d">5.2 A</text>
+    <rect x="768" y="72" width="96" height="62" rx="8" fill="#f4f6f8"/><text x="816" y="90">Today</text><text x="816" y="120" font-size="18" font-weight="700" fill="#33424d">1.84 kWh</text>
+  </g>
+  <text x="480" y="164" font-size="12" fill="#6b7a85">Power, last 24 hours</text>
+  <path d="M480 300 L520 296 L560 298 L600 292 L630 240 L660 200 L690 206 L720 250 L750 292 L790 296 L860 298 L860 310 L480 310z" fill="#d9e8f7"/>
+  <path d="M480 300 L520 296 L560 298 L600 292 L630 240 L660 200 L690 206 L720 250 L750 292 L790 296 L860 298" fill="none" stroke="#2f6fb5" stroke-width="2.5"/>
+  <line x1="480" y1="310" x2="860" y2="310" stroke="#dde3e8"/>
+  <rect x="480" y="330" width="80" height="34" rx="17" fill="#2f6fb5"/>
+  <text x="520" y="352" font-size="13" text-anchor="middle" fill="#ffffff">On</text>
+  <rect x="572" y="330" width="80" height="34" rx="17" fill="#eef1f4"/>
+  <text x="612" y="352" font-size="13" text-anchor="middle" fill="#33424d">Off</text>
+</svg>

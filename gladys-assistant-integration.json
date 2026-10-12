@@ -1,0 +1,960 @@
+{
+  "manifest_version": 1,
+  "type": "device",
+  "name": "Sonoff / eWeLink",
+  "description": {
+    "en": "Control your Sonoff and eWeLink devices, on the local network first, the cloud as a backup.",
+    "fr": "Pilotez vos appareils Sonoff et eWeLink, en local d'abord, avec le cloud en secours.",
+    "de": "Steuern Sie Ihre Sonoff- und eWeLink-Geräte, zuerst lokal, mit der Cloud als Reserve.",
+    "es": "Controle sus dispositivos Sonoff y eWeLink, primero en local, con la nube como respaldo."
+  },
+  "version": "0.1.0",
+  "docker_image": "ghcr.io/william-de71/gladys-sonoff-ewelink:0.1.0",
+  "gladys_version": ">=5.2.0",
+  "cover_image": "https://raw.githubusercontent.com/William-De71/gladys-sonoff-ewelink/main/cover.jpg",
+  "categories": ["lighting", "energy", "climate"],
+  "transports": ["local", "cloud"],
+  "network_discovery": [{ "type": "mdns", "service": "_ewelink._tcp" }],
+  "config_schema": [
+    {
+      "key": "intro",
+      "type": "section",
+      "label": {
+        "en": "Local network first",
+        "fr": "Le réseau local d'abord",
+        "de": "Zuerst das lokale Netzwerk",
+        "es": "Primero la red local"
+      },
+      "description": {
+        "en": "Devices are found and controlled on your local network, without internet. Devices in DIY mode need nothing more. The others encrypt their messages with a key only the eWeLink cloud knows: connect the cloud below once, or add their key by hand with the \"Add a device by hand\" action.",
+        "fr": "Les appareils sont découverts et pilotés sur votre réseau local, sans internet. Ceux en mode DIY n'ont besoin de rien d'autre. Les autres chiffrent leurs messages avec une clé que seul le cloud eWeLink connaît : connectez le cloud ci-dessous une fois, ou ajoutez leur clé à la main avec l'action « Ajouter un appareil à la main ».",
+        "de": "Geräte werden in Ihrem lokalen Netzwerk gefunden und gesteuert, ohne Internet. Geräte im DIY-Modus brauchen nichts weiter. Die anderen verschlüsseln ihre Nachrichten mit einem Schlüssel, den nur die eWeLink-Cloud kennt: Verbinden Sie unten einmal die Cloud oder fügen Sie den Schlüssel mit der Aktion „Gerät manuell hinzufügen“ hinzu.",
+        "es": "Los dispositivos se descubren y controlan en su red local, sin internet. Los que están en modo DIY no necesitan nada más. Los demás cifran sus mensajes con una clave que solo conoce la nube de eWeLink: conecte la nube una vez más abajo, o añada su clave a mano con la acción «Añadir un dispositivo a mano»."
+      }
+    },
+    {
+      "key": "local_enabled",
+      "type": "boolean",
+      "label": {
+        "en": "Local network control",
+        "fr": "Contrôle par le réseau local",
+        "de": "Steuerung über das lokale Netzwerk",
+        "es": "Control por la red local"
+      },
+      "description": {
+        "en": "Find the devices on the network (mDNS) and send them the commands directly.",
+        "fr": "Trouve les appareils sur le réseau (mDNS) et leur envoie les commandes directement.",
+        "de": "Findet die Geräte im Netzwerk (mDNS) und sendet ihnen die Befehle direkt.",
+        "es": "Encuentra los dispositivos en la red (mDNS) y les envía los comandos directamente."
+      },
+      "default": true
+    },
+    {
+      "key": "scan_interval",
+      "type": "number",
+      "label": {
+        "en": "Network scan interval (s)",
+        "fr": "Intervalle de recherche réseau (s)",
+        "de": "Intervall der Netzwerksuche (s)",
+        "es": "Intervalo de búsqueda en la red (s)"
+      },
+      "description": {
+        "en": "How often the network is browsed for the device addresses and states.",
+        "fr": "Fréquence de recherche des adresses et des états des appareils sur le réseau.",
+        "de": "Wie oft das Netzwerk nach den Adressen und Zuständen der Geräte durchsucht wird.",
+        "es": "Frecuencia con la que se buscan en la red las direcciones y estados de los dispositivos."
+      },
+      "placeholder": { "en": "60", "fr": "60", "de": "60", "es": "60" },
+      "default": 60,
+      "min": 20,
+      "max": 3600
+    },
+    {
+      "key": "poll_interval",
+      "type": "number",
+      "label": {
+        "en": "Local refresh interval (s)",
+        "fr": "Intervalle de rafraîchissement local (s)",
+        "de": "Lokales Aktualisierungsintervall (s)",
+        "es": "Intervalo de actualización local (s)"
+      },
+      "description": {
+        "en": "How often each device is asked for its state (power, temperature...).",
+        "fr": "Fréquence à laquelle chaque appareil est interrogé sur son état (puissance, température...).",
+        "de": "Wie oft jedes Gerät nach seinem Zustand gefragt wird (Leistung, Temperatur...).",
+        "es": "Frecuencia con la que se consulta el estado de cada dispositivo (potencia, temperatura...)."
+      },
+      "placeholder": { "en": "30", "fr": "30", "de": "30", "es": "30" },
+      "default": 30,
+      "min": 10,
+      "max": 600
+    },
+    {
+      "key": "cloud_intro",
+      "type": "section",
+      "label": {
+        "en": "eWeLink cloud (optional)",
+        "fr": "Cloud eWeLink (facultatif)",
+        "de": "eWeLink-Cloud (optional)",
+        "es": "Nube eWeLink (opcional)"
+      },
+      "description": {
+        "en": "The cloud brings the encryption keys, the names of your devices, real-time updates, remote control and the Zigbee devices of a bridge. It needs your own free eWeLink developer application: create it on dev.ewelink.cc, then enter its App ID and App Secret.",
+        "fr": "Le cloud apporte les clés de chiffrement, les noms de vos appareils, les mises à jour en temps réel, le contrôle à distance et les appareils Zigbee d'une passerelle. Il nécessite votre propre application développeur eWeLink, gratuite : créez-la sur dev.ewelink.cc, puis saisissez son App ID et son App Secret.",
+        "de": "Die Cloud liefert die Schlüssel, die Namen Ihrer Geräte, Echtzeit-Aktualisierungen, die Fernsteuerung und die Zigbee-Geräte einer Bridge. Sie benötigt Ihre eigene, kostenlose eWeLink-Entwickleranwendung: Erstellen Sie sie auf dev.ewelink.cc und geben Sie App ID und App Secret ein.",
+        "es": "La nube aporta las claves de cifrado, los nombres de sus dispositivos, las actualizaciones en tiempo real, el control remoto y los dispositivos Zigbee de una pasarela. Necesita su propia aplicación de desarrollador eWeLink, gratuita: créela en dev.ewelink.cc e introduzca su App ID y su App Secret."
+      },
+      "links": [
+        {
+          "url": "https://dev.ewelink.cc",
+          "label": {
+            "en": "eWeLink developer center",
+            "fr": "Centre développeur eWeLink",
+            "de": "eWeLink-Entwicklerzentrum",
+            "es": "Centro de desarrolladores eWeLink"
+          }
+        }
+      ]
+    },
+    {
+      "key": "cloud_mode",
+      "type": "select",
+      "label": {
+        "en": "Cloud connection",
+        "fr": "Connexion au cloud",
+        "de": "Cloud-Verbindung",
+        "es": "Conexión a la nube"
+      },
+      "default": "none",
+      "display": "radio",
+      "options": [
+        {
+          "value": "none",
+          "label": {
+            "en": "None (local network only)",
+            "fr": "Aucune (réseau local uniquement)",
+            "de": "Keine (nur lokales Netzwerk)",
+            "es": "Ninguna (solo red local)"
+          }
+        },
+        {
+          "value": "oauth",
+          "label": {
+            "en": "Developer application (OAuth, recommended)",
+            "fr": "Application développeur (OAuth, recommandé)",
+            "de": "Entwickleranwendung (OAuth, empfohlen)",
+            "es": "Aplicación de desarrollador (OAuth, recomendado)"
+          }
+        },
+        {
+          "value": "password",
+          "label": {
+            "en": "E-mail and password",
+            "fr": "E-mail et mot de passe",
+            "de": "E-Mail und Passwort",
+            "es": "Correo electrónico y contraseña"
+          }
+        }
+      ]
+    },
+    {
+      "key": "app_id",
+      "type": "string",
+      "label": { "en": "App ID", "fr": "App ID", "de": "App ID", "es": "App ID" },
+      "description": {
+        "en": "Shown in your eWeLink developer application.",
+        "fr": "Affiché dans votre application développeur eWeLink.",
+        "de": "Wird in Ihrer eWeLink-Entwickleranwendung angezeigt.",
+        "es": "Se muestra en su aplicación de desarrollador eWeLink."
+      },
+      "placeholder": {
+        "en": "32 characters",
+        "fr": "32 caractères",
+        "de": "32 Zeichen",
+        "es": "32 caracteres"
+      }
+    },
+    {
+      "key": "app_secret",
+      "type": "secret",
+      "label": { "en": "App Secret", "fr": "App Secret", "de": "App Secret", "es": "App Secret" },
+      "placeholder": {
+        "en": "32 characters",
+        "fr": "32 caractères",
+        "de": "32 Zeichen",
+        "es": "32 caracteres"
+      }
+    },
+    {
+      "key": "region",
+      "type": "select",
+      "label": {
+        "en": "Account region",
+        "fr": "Région du compte",
+        "de": "Region des Kontos",
+        "es": "Región de la cuenta"
+      },
+      "description": {
+        "en": "Where your eWeLink account was created. Another region is tried when it is wrong.",
+        "fr": "Là où votre compte eWeLink a été créé. Une autre région est essayée si elle est fausse.",
+        "de": "Wo Ihr eWeLink-Konto erstellt wurde. Bei einem Fehler wird eine andere Region versucht.",
+        "es": "Donde se creó su cuenta eWeLink. Si es incorrecta, se prueba otra región."
+      },
+      "default": "eu",
+      "options": [
+        {
+          "value": "eu",
+          "label": { "en": "Europe", "fr": "Europe", "de": "Europa", "es": "Europa" }
+        },
+        {
+          "value": "us",
+          "label": { "en": "Americas", "fr": "Amériques", "de": "Amerika", "es": "América" }
+        },
+        { "value": "as", "label": { "en": "Asia", "fr": "Asie", "de": "Asien", "es": "Asia" } },
+        {
+          "value": "cn",
+          "label": {
+            "en": "Mainland China",
+            "fr": "Chine continentale",
+            "de": "Festlandchina",
+            "es": "China continental"
+          }
+        }
+      ]
+    },
+    {
+      "key": "oauth_intro",
+      "type": "section",
+      "label": {
+        "en": "Developer application (OAuth)",
+        "fr": "Application développeur (OAuth)",
+        "de": "Entwickleranwendung (OAuth)",
+        "es": "Aplicación de desarrollador (OAuth)"
+      },
+      "description": {
+        "en": "Save the form first. In your eWeLink developer application, set the redirect URL shown under the button below. Then click Connect and sign in to eWeLink.",
+        "fr": "Enregistrez d'abord le formulaire. Dans votre application développeur eWeLink, renseignez l'URL de redirection affichée sous le bouton ci-dessous. Cliquez ensuite sur Connecter et identifiez-vous sur eWeLink.",
+        "de": "Speichern Sie zuerst das Formular. Tragen Sie in Ihrer eWeLink-Entwickleranwendung die unter der Schaltfläche angezeigte Weiterleitungs-URL ein. Klicken Sie dann auf Verbinden und melden Sie sich bei eWeLink an.",
+        "es": "Guarde primero el formulario. En su aplicación de desarrollador eWeLink, indique la URL de redirección que aparece bajo el botón de abajo. Después haga clic en Conectar e inicie sesión en eWeLink."
+      }
+    },
+    {
+      "key": "oauth",
+      "type": "oauth2",
+      "label": {
+        "en": "eWeLink account",
+        "fr": "Compte eWeLink",
+        "de": "eWeLink-Konto",
+        "es": "Cuenta eWeLink"
+      }
+    },
+    {
+      "key": "password_intro",
+      "type": "section",
+      "label": {
+        "en": "E-mail and password",
+        "fr": "E-mail et mot de passe",
+        "de": "E-Mail und Passwort",
+        "es": "Correo electrónico y contraseña"
+      },
+      "description": {
+        "en": "Only for App IDs allowed to sign in with a password (the free developer ones are not). Signing in with the App ID of another application may disconnect it.",
+        "fr": "Uniquement pour les App ID autorisés à se connecter par mot de passe (pas les App ID développeur gratuits). Se connecter avec l'App ID d'une autre application peut la déconnecter.",
+        "de": "Nur für App IDs, die sich mit Passwort anmelden dürfen (die kostenlosen Entwickler-IDs nicht). Die Anmeldung mit der App ID einer anderen Anwendung kann diese abmelden.",
+        "es": "Solo para App ID autorizados a iniciar sesión con contraseña (no los de desarrollador gratuitos). Iniciar sesión con el App ID de otra aplicación puede desconectarla."
+      }
+    },
+    {
+      "key": "account",
+      "type": "string",
+      "label": {
+        "en": "eWeLink e-mail or phone",
+        "fr": "E-mail ou téléphone eWeLink",
+        "de": "eWeLink-E-Mail oder -Telefon",
+        "es": "Correo o teléfono de eWeLink"
+      },
+      "placeholder": {
+        "en": "me@example.com",
+        "fr": "moi@exemple.fr",
+        "de": "ich@beispiel.de",
+        "es": "yo@ejemplo.es"
+      }
+    },
+    {
+      "key": "password",
+      "type": "secret",
+      "label": {
+        "en": "eWeLink password",
+        "fr": "Mot de passe eWeLink",
+        "de": "eWeLink-Passwort",
+        "es": "Contraseña de eWeLink"
+      }
+    },
+    {
+      "key": "country_code",
+      "type": "string",
+      "label": {
+        "en": "Country calling code",
+        "fr": "Indicatif téléphonique du pays",
+        "de": "Ländervorwahl",
+        "es": "Prefijo telefónico del país"
+      },
+      "placeholder": { "en": "+44", "fr": "+33", "de": "+49", "es": "+34" },
+      "default": "+33"
+    },
+    {
+      "key": "cloud_energy_history",
+      "type": "boolean",
+      "label": {
+        "en": "Daily consumption of the first POW models",
+        "fr": "Consommation du jour des premiers POW",
+        "de": "Tagesverbrauch der ersten POW-Modelle",
+        "es": "Consumo diario de los primeros POW"
+      },
+      "description": {
+        "en": "Asks the cloud once an hour for the consumption of the POW, POWR2 and S40.",
+        "fr": "Demande au cloud, une fois par heure, la consommation des POW, POWR2 et S40.",
+        "de": "Fragt die Cloud einmal pro Stunde nach dem Verbrauch von POW, POWR2 und S40.",
+        "es": "Pide a la nube, una vez por hora, el consumo de los POW, POWR2 y S40."
+      },
+      "default": true
+    }
+  ],
+  "actions": [
+    {
+      "key": "add_local_device",
+      "label": {
+        "en": "Add a device by hand",
+        "fr": "Ajouter un appareil à la main",
+        "de": "Gerät manuell hinzufügen",
+        "es": "Añadir un dispositivo a mano"
+      },
+      "description": {
+        "en": "For a device the network scan cannot see, or whose encryption key you know.",
+        "fr": "Pour un appareil que la recherche réseau ne voit pas, ou dont vous connaissez la clé.",
+        "de": "Für ein Gerät, das die Netzwerksuche nicht sieht, oder dessen Schlüssel Sie kennen.",
+        "es": "Para un dispositivo que la búsqueda en la red no ve, o cuya clave conoce."
+      },
+      "timeout_seconds": 30,
+      "fields": [
+        {
+          "key": "deviceid",
+          "type": "string",
+          "label": {
+            "en": "Device ID",
+            "fr": "ID de l'appareil",
+            "de": "Geräte-ID",
+            "es": "ID del dispositivo"
+          },
+          "placeholder": {
+            "en": "1000a1b2c3",
+            "fr": "1000a1b2c3",
+            "de": "1000a1b2c3",
+            "es": "1000a1b2c3"
+          },
+          "required": true
+        },
+        {
+          "key": "host",
+          "type": "string",
+          "label": {
+            "en": "IP address (optional)",
+            "fr": "Adresse IP (facultatif)",
+            "de": "IP-Adresse (optional)",
+            "es": "Dirección IP (opcional)"
+          },
+          "placeholder": {
+            "en": "192.168.1.42",
+            "fr": "192.168.1.42",
+            "de": "192.168.1.42",
+            "es": "192.168.1.42"
+          }
+        },
+        {
+          "key": "devicekey",
+          "type": "secret",
+          "label": {
+            "en": "Device key (optional)",
+            "fr": "Clé de l'appareil (facultatif)",
+            "de": "Geräteschlüssel (optional)",
+            "es": "Clave del dispositivo (opcional)"
+          },
+          "placeholder": {
+            "en": "Empty for DIY mode",
+            "fr": "Vide en mode DIY",
+            "de": "Leer im DIY-Modus",
+            "es": "Vacía en modo DIY"
+          }
+        }
+      ]
+    },
+    {
+      "key": "remove_local_device",
+      "label": {
+        "en": "Remove a manual device",
+        "fr": "Retirer un appareil manuel",
+        "de": "Manuelles Gerät entfernen",
+        "es": "Quitar un dispositivo manual"
+      },
+      "timeout_seconds": 15,
+      "fields": [
+        {
+          "key": "deviceid",
+          "type": "string",
+          "label": {
+            "en": "Device ID",
+            "fr": "ID de l'appareil",
+            "de": "Geräte-ID",
+            "es": "ID del dispositivo"
+          },
+          "placeholder": {
+            "en": "1000a1b2c3",
+            "fr": "1000a1b2c3",
+            "de": "1000a1b2c3",
+            "es": "1000a1b2c3"
+          },
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "test_connection",
+      "label": {
+        "en": "Test the connection",
+        "fr": "Tester la connexion",
+        "de": "Verbindung testen",
+        "es": "Probar la conexión"
+      },
+      "description": {
+        "en": "Scans the local network and reports the state of the cloud connection.",
+        "fr": "Recherche sur le réseau local et indique l'état de la connexion au cloud.",
+        "de": "Durchsucht das lokale Netzwerk und meldet den Zustand der Cloud-Verbindung.",
+        "es": "Busca en la red local e indica el estado de la conexión a la nube."
+      },
+      "timeout_seconds": 30
+    }
+  ],
+  "scene_triggers": [
+    {
+      "key": "button_pressed",
+      "label": {
+        "en": "Sonoff button pressed",
+        "fr": "Bouton Sonoff appuyé",
+        "de": "Sonoff-Taste gedrückt",
+        "es": "Botón Sonoff pulsado"
+      },
+      "description": {
+        "en": "A wireless button, a remote or a wall switch reported a press.",
+        "fr": "Un bouton sans fil, une télécommande ou un interrupteur mural a signalé un appui.",
+        "de": "Eine Funktaste, eine Fernbedienung oder ein Wandschalter hat einen Druck gemeldet.",
+        "es": "Un botón inalámbrico, un mando o un interruptor de pared ha notificado una pulsación."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Device", "fr": "Appareil", "de": "Gerät", "es": "Dispositivo" }
+        },
+        {
+          "key": "button",
+          "type": "select",
+          "label": { "en": "Button", "fr": "Bouton", "de": "Taste", "es": "Botón" },
+          "options": [
+            { "value": "1", "label": { "en": "1", "fr": "1", "de": "1", "es": "1" } },
+            { "value": "2", "label": { "en": "2", "fr": "2", "de": "2", "es": "2" } },
+            { "value": "3", "label": { "en": "3", "fr": "3", "de": "3", "es": "3" } },
+            { "value": "4", "label": { "en": "4", "fr": "4", "de": "4", "es": "4" } }
+          ]
+        },
+        {
+          "key": "press",
+          "type": "multi_select",
+          "label": { "en": "Press", "fr": "Appui", "de": "Druck", "es": "Pulsación" },
+          "options": [
+            {
+              "value": "single",
+              "label": { "en": "Single", "fr": "Simple", "de": "Einfach", "es": "Simple" }
+            },
+            {
+              "value": "double",
+              "label": { "en": "Double", "fr": "Double", "de": "Doppelt", "es": "Doble" }
+            },
+            {
+              "value": "long",
+              "label": { "en": "Long", "fr": "Long", "de": "Lang", "es": "Larga" }
+            },
+            {
+              "value": "triple",
+              "label": { "en": "Triple", "fr": "Triple", "de": "Dreifach", "es": "Triple" }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "button",
+          "type": "string",
+          "label": { "en": "Button", "fr": "Bouton", "de": "Taste", "es": "Botón" }
+        },
+        {
+          "key": "press",
+          "type": "string",
+          "label": { "en": "Press", "fr": "Appui", "de": "Druck", "es": "Pulsación" }
+        },
+        {
+          "key": "device_name",
+          "type": "string",
+          "label": {
+            "en": "Device name",
+            "fr": "Nom de l'appareil",
+            "de": "Gerätename",
+            "es": "Nombre del dispositivo"
+          }
+        }
+      ]
+    },
+    {
+      "key": "rf_code_received",
+      "label": {
+        "en": "RF code received",
+        "fr": "Code RF reçu",
+        "de": "RF-Code empfangen",
+        "es": "Código RF recibido"
+      },
+      "description": {
+        "en": "An RF Bridge 433 received a code it learned (remote, door or motion sensor).",
+        "fr": "Un RF Bridge 433 a reçu un code appris (télécommande, détecteur d'ouverture ou de mouvement).",
+        "de": "Eine RF Bridge 433 hat einen angelernten Code empfangen (Fernbedienung, Tür- oder Bewegungsmelder).",
+        "es": "Un RF Bridge 433 recibió un código aprendido (mando, sensor de apertura o de movimiento)."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "RF Bridge", "fr": "RF Bridge", "de": "RF Bridge", "es": "RF Bridge" }
+        },
+        {
+          "key": "channel",
+          "type": "string",
+          "label": {
+            "en": "Code number",
+            "fr": "Numéro du code",
+            "de": "Codenummer",
+            "es": "Número de código"
+          },
+          "placeholder": { "en": "0", "fr": "0", "de": "0", "es": "0" }
+        }
+      ],
+      "variables": [
+        {
+          "key": "channel",
+          "type": "string",
+          "label": {
+            "en": "Code number",
+            "fr": "Numéro du code",
+            "de": "Codenummer",
+            "es": "Número de código"
+          }
+        },
+        {
+          "key": "name",
+          "type": "string",
+          "label": {
+            "en": "Code name",
+            "fr": "Nom du code",
+            "de": "Codename",
+            "es": "Nombre del código"
+          }
+        },
+        {
+          "key": "device_name",
+          "type": "string",
+          "label": {
+            "en": "Device name",
+            "fr": "Nom de l'appareil",
+            "de": "Gerätename",
+            "es": "Nombre del dispositivo"
+          }
+        }
+      ]
+    },
+    {
+      "key": "device_connection_changed",
+      "label": {
+        "en": "Sonoff device online/offline",
+        "fr": "Appareil Sonoff (dé)connecté",
+        "de": "Sonoff-Gerät online/offline",
+        "es": "Dispositivo Sonoff conectado/desconectado"
+      },
+      "description": {
+        "en": "A device can no longer be reached (network and cloud), or is back.",
+        "fr": "Un appareil n'est plus joignable (réseau et cloud), ou l'est de nouveau.",
+        "de": "Ein Gerät ist nicht mehr erreichbar (Netzwerk und Cloud) oder wieder da.",
+        "es": "Un dispositivo deja de ser accesible (red y nube), o vuelve a serlo."
+      },
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Device", "fr": "Appareil", "de": "Gerät", "es": "Dispositivo" }
+        },
+        {
+          "key": "status",
+          "type": "select",
+          "label": { "en": "Becomes", "fr": "Devient", "de": "Wird", "es": "Pasa a" },
+          "options": [
+            {
+              "value": "offline",
+              "label": {
+                "en": "Unreachable",
+                "fr": "Injoignable",
+                "de": "Nicht erreichbar",
+                "es": "Inaccesible"
+              }
+            },
+            {
+              "value": "online",
+              "label": {
+                "en": "Reachable",
+                "fr": "Joignable",
+                "de": "Erreichbar",
+                "es": "Accesible"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "status",
+          "type": "string",
+          "label": { "en": "Status", "fr": "État", "de": "Status", "es": "Estado" }
+        },
+        {
+          "key": "device_name",
+          "type": "string",
+          "label": {
+            "en": "Device name",
+            "fr": "Nom de l'appareil",
+            "de": "Gerätename",
+            "es": "Nombre del dispositivo"
+          }
+        }
+      ]
+    },
+    {
+      "key": "cloud_status_changed",
+      "label": {
+        "en": "eWeLink cloud status changed",
+        "fr": "État du cloud eWeLink modifié",
+        "de": "Status der eWeLink-Cloud geändert",
+        "es": "Estado de la nube eWeLink cambiado"
+      },
+      "description": {
+        "en": "The cloud connection was lost, came back, needs a new sign-in or ran out of quota.",
+        "fr": "La connexion au cloud est perdue, revenue, demande une reconnexion ou a épuisé son quota.",
+        "de": "Die Cloud-Verbindung ging verloren, ist zurück, braucht eine Anmeldung oder hat kein Kontingent mehr.",
+        "es": "La conexión a la nube se perdió, volvió, pide iniciar sesión o agotó su cuota."
+      },
+      "fields": [
+        {
+          "key": "status",
+          "type": "multi_select",
+          "label": { "en": "Status", "fr": "État", "de": "Status", "es": "Estado" },
+          "options": [
+            {
+              "value": "connected",
+              "label": { "en": "Connected", "fr": "Connecté", "de": "Verbunden", "es": "Conectada" }
+            },
+            {
+              "value": "disconnected",
+              "label": {
+                "en": "Disconnected",
+                "fr": "Déconnecté",
+                "de": "Getrennt",
+                "es": "Desconectada"
+              }
+            },
+            {
+              "value": "auth_required",
+              "label": {
+                "en": "Sign-in required",
+                "fr": "Connexion requise",
+                "de": "Anmeldung erforderlich",
+                "es": "Inicio de sesión necesario"
+              }
+            },
+            {
+              "value": "quota_exhausted",
+              "label": {
+                "en": "Quota exhausted",
+                "fr": "Quota épuisé",
+                "de": "Kontingent erschöpft",
+                "es": "Cuota agotada"
+              }
+            }
+          ]
+        }
+      ],
+      "variables": [
+        {
+          "key": "status",
+          "type": "string",
+          "label": { "en": "Status", "fr": "État", "de": "Status", "es": "Estado" }
+        }
+      ]
+    }
+  ],
+  "scene_actions": [
+    {
+      "key": "rf_transmit",
+      "label": {
+        "en": "Send an RF code",
+        "fr": "Envoyer un code RF",
+        "de": "RF-Code senden",
+        "es": "Enviar un código RF"
+      },
+      "description": {
+        "en": "An RF Bridge 433 sends one of the codes it learned (gate, blind, socket...).",
+        "fr": "Un RF Bridge 433 envoie l'un des codes appris (portail, store, prise...).",
+        "de": "Eine RF Bridge 433 sendet einen ihrer angelernten Codes (Tor, Rollo, Steckdose...).",
+        "es": "Un RF Bridge 433 envía uno de los códigos aprendidos (portón, persiana, enchufe...)."
+      },
+      "timeout_seconds": 15,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "RF Bridge", "fr": "RF Bridge", "de": "RF Bridge", "es": "RF Bridge" },
+          "required": true
+        },
+        {
+          "key": "channel",
+          "type": "string",
+          "label": {
+            "en": "Code number or name",
+            "fr": "Numéro ou nom du code",
+            "de": "Nummer oder Name des Codes",
+            "es": "Número o nombre del código"
+          },
+          "placeholder": { "en": "0", "fr": "0", "de": "0", "es": "0" },
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "key": "sent",
+          "type": "boolean",
+          "label": {
+            "en": "Code sent",
+            "fr": "Code envoyé",
+            "de": "Code gesendet",
+            "es": "Código enviado"
+          }
+        },
+        {
+          "key": "via",
+          "type": "string",
+          "label": {
+            "en": "Channel used",
+            "fr": "Canal utilisé",
+            "de": "Genutzter Kanal",
+            "es": "Canal utilizado"
+          }
+        }
+      ]
+    },
+    {
+      "key": "send_command",
+      "label": {
+        "en": "Send an eWeLink command",
+        "fr": "Envoyer une commande eWeLink",
+        "de": "eWeLink-Befehl senden",
+        "es": "Enviar un comando eWeLink"
+      },
+      "description": {
+        "en": "Sends raw eWeLink parameters, for what Gladys has no control for (light effects...).",
+        "fr": "Envoie des paramètres eWeLink bruts, pour ce que Gladys ne pilote pas (effets lumineux...).",
+        "de": "Sendet rohe eWeLink-Parameter für das, was Gladys nicht steuert (Lichteffekte...).",
+        "es": "Envía parámetros eWeLink en bruto, para lo que Gladys no controla (efectos de luz...)."
+      },
+      "timeout_seconds": 15,
+      "fields": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Device", "fr": "Appareil", "de": "Gerät", "es": "Dispositivo" },
+          "required": true
+        },
+        {
+          "key": "params",
+          "type": "string",
+          "label": {
+            "en": "Parameters (JSON)",
+            "fr": "Paramètres (JSON)",
+            "de": "Parameter (JSON)",
+            "es": "Parámetros (JSON)"
+          },
+          "placeholder": {
+            "en": "{\"switch\":\"on\"}",
+            "fr": "{\"switch\":\"on\"}",
+            "de": "{\"switch\":\"on\"}",
+            "es": "{\"switch\":\"on\"}"
+          },
+          "required": true
+        }
+      ],
+      "outputs": [
+        {
+          "key": "sent",
+          "type": "boolean",
+          "label": {
+            "en": "Command accepted",
+            "fr": "Commande acceptée",
+            "de": "Befehl angenommen",
+            "es": "Comando aceptado"
+          }
+        },
+        {
+          "key": "via",
+          "type": "string",
+          "label": {
+            "en": "Channel used",
+            "fr": "Canal utilisé",
+            "de": "Genutzter Kanal",
+            "es": "Canal utilizado"
+          }
+        }
+      ]
+    },
+    {
+      "key": "refresh_devices",
+      "label": {
+        "en": "Rescan the Sonoff devices",
+        "fr": "Relancer la recherche Sonoff",
+        "de": "Sonoff-Geräte neu suchen",
+        "es": "Volver a buscar dispositivos Sonoff"
+      },
+      "description": {
+        "en": "Browses the local network and the eWeLink account again.",
+        "fr": "Parcourt de nouveau le réseau local et le compte eWeLink.",
+        "de": "Durchsucht das lokale Netzwerk und das eWeLink-Konto erneut.",
+        "es": "Vuelve a recorrer la red local y la cuenta eWeLink."
+      },
+      "timeout_seconds": 60,
+      "outputs": [
+        {
+          "key": "devices",
+          "type": "number",
+          "label": {
+            "en": "Devices found",
+            "fr": "Appareils trouvés",
+            "de": "Gefundene Geräte",
+            "es": "Dispositivos encontrados"
+          }
+        },
+        {
+          "key": "reachable",
+          "type": "number",
+          "label": {
+            "en": "Reachable devices",
+            "fr": "Appareils joignables",
+            "de": "Erreichbare Geräte",
+            "es": "Dispositivos accesibles"
+          }
+        }
+      ]
+    }
+  ],
+  "widgets": [
+    {
+      "key": "network_status",
+      "label": {
+        "en": "Sonoff network",
+        "fr": "Réseau Sonoff",
+        "de": "Sonoff-Netzwerk",
+        "es": "Red Sonoff"
+      },
+      "description": {
+        "en": "How each device is reached, the cloud session and the API quota.",
+        "fr": "Comment chaque appareil est joint, la session cloud et le quota d'API.",
+        "de": "Wie jedes Gerät erreicht wird, die Cloud-Sitzung und das API-Kontingent.",
+        "es": "Cómo se accede a cada dispositivo, la sesión en la nube y la cuota de API."
+      },
+      "icon": "wifi",
+      "action_timeout_seconds": 60
+    },
+    {
+      "key": "energy_monitor",
+      "label": {
+        "en": "Sonoff energy",
+        "fr": "Énergie Sonoff",
+        "de": "Sonoff-Energie",
+        "es": "Energía Sonoff"
+      },
+      "description": {
+        "en": "Power, voltage, current and consumption of a metering plug or switch.",
+        "fr": "Puissance, tension, intensité et consommation d'une prise ou d'un module mesureur.",
+        "de": "Leistung, Spannung, Strom und Verbrauch einer messenden Steckdose oder eines Moduls.",
+        "es": "Potencia, tensión, corriente y consumo de un enchufe o módulo con medición."
+      },
+      "icon": "zap",
+      "settings": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "Device", "fr": "Appareil", "de": "Gerät", "es": "Dispositivo" },
+          "required": true
+        }
+      ]
+    },
+    {
+      "key": "rf_remote",
+      "label": {
+        "en": "RF remote",
+        "fr": "Télécommande RF",
+        "de": "RF-Fernbedienung",
+        "es": "Mando RF"
+      },
+      "description": {
+        "en": "Codes of an RF Bridge as buttons, and the codes it received lately.",
+        "fr": "Les codes d'un RF Bridge en boutons, et les derniers codes reçus.",
+        "de": "Die Codes einer RF Bridge als Tasten und die zuletzt empfangenen Codes.",
+        "es": "Los códigos de un RF Bridge como botones, y los últimos códigos recibidos."
+      },
+      "icon": "radio",
+      "settings": [
+        {
+          "key": "device",
+          "type": "select",
+          "source": "devices",
+          "label": { "en": "RF Bridge", "fr": "RF Bridge", "de": "RF Bridge", "es": "RF Bridge" },
+          "required": true
+        },
+        {
+          "key": "codes",
+          "type": "string",
+          "label": {
+            "en": "Codes shown (up to 4)",
+            "fr": "Codes affichés (4 au plus)",
+            "de": "Angezeigte Codes (bis zu 4)",
+            "es": "Códigos mostrados (hasta 4)"
+          },
+          "description": {
+            "en": "Numbers or names, separated by commas. Empty: the first four.",
+            "fr": "Numéros ou noms, séparés par des virgules. Vide : les quatre premiers.",
+            "de": "Nummern oder Namen, durch Kommas getrennt. Leer: die ersten vier.",
+            "es": "Números o nombres, separados por comas. Vacío: los cuatro primeros."
+          },
+          "placeholder": { "en": "0, 3", "fr": "0, 3", "de": "0, 3", "es": "0, 3" }
+        }
+      ]
+    }
+  ]
+}

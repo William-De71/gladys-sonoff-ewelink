@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="534" viewBox="0 0 800 534">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f2a3d"/>
+      <stop offset="1" stop-color="#14506b"/>
+    </linearGradient>
+    <linearGradient id="device" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dfe8ee"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="534" fill="url(#bg)"/>
+
+  <!-- LAN mesh -->
+  <g stroke="#3fb6d3" stroke-opacity="0.25" stroke-width="2" fill="none">
+    <path d="M60 470 L210 380 L380 430 L560 360 L740 450"/>
+    <path d="M210 380 L300 300 M560 360 L520 280 M380 430 L420 500"/>
+  </g>
+  <g fill="#3fb6d3" fill-opacity="0.45">
+    <circle cx="60" cy="470" r="6"/><circle cx="210" cy="380" r="6"/><circle cx="380" cy="430" r="6"/>
+    <circle cx="560" cy="360" r="6"/><circle cx="740" cy="450" r="6"/><circle cx="420" cy="500" r="5"/>
+  </g>
+
+  <!-- Shadows -->
+  <g fill="#000000" opacity="0.25">
+    <rect x="104" y="164" width="190" height="190" rx="42"/>
+    <rect x="326" y="148" width="164" height="222" rx="30"/>
+    <ellipse cx="618" cy="372" rx="70" ry="10"/>
+  </g>
+
+  <!-- Smart plug -->
+  <g>
+    <rect x="96" y="150" width="190" height="190" rx="42" fill="url(#device)"/>
+    <circle cx="191" cy="245" r="58" fill="#eef3f6" stroke="#c9d6de" stroke-width="3"/>
+    <rect x="166" y="222" width="12" height="34" rx="6" fill="#33424d"/>
+    <rect x="204" y="222" width="12" height="34" rx="6" fill="#33424d"/>
+    <circle cx="252" cy="182" r="9" fill="#2ecc71"/>
+  </g>
+
+  <!-- Wall switch -->
+  <g>
+    <rect x="318" y="134" width="164" height="222" rx="30" fill="url(#device)"/>
+    <rect x="344" y="162" width="112" height="166" rx="18" fill="#eef3f6" stroke="#c9d6de" stroke-width="3"/>
+    <rect x="384" y="186" width="32" height="6" rx="3" fill="#3fb6d3"/>
+    <line x1="400" y1="210" x2="400" y2="306" stroke="#c9d6de" stroke-width="3"/>
+  </g>
+
+  <!-- Bulb -->
+  <g>
+    <path d="M610 150 a72 72 0 0 1 44 129 c-10 8-14 18-14 30 v14 h-60 v-14 c0-12-4-22-14-30 a72 72 0 0 1 44-129z" fill="#ffd166"/>
+    <rect x="580" y="328" width="60" height="16" rx="6" fill="#c9d6de"/>
+    <rect x="586" y="348" width="48" height="14" rx="6" fill="#aebcc6"/>
+  </g>
+  <g stroke="#ffd166" stroke-width="5" stroke-linecap="round" opacity="0.8">
+    <line x1="610" y1="112" x2="610" y2="90"/>
+    <line x1="676" y1="134" x2="692" y2="118"/>
+    <line x1="544" y1="134" x2="528" y2="118"/>
+  </g>
+
+  <!-- Local + cloud -->
+  <g fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity="0.9">
+    <path d="M690 236 a40 40 0 0 1 56 0"/>
+    <path d="M702 252 a22 22 0 0 1 32 0"/>
+  </g>
+  <circle cx="718" cy="268" r="6" fill="#ffffff"/>
+  <path d="M676 76 h70 a22 22 0 0 0 -6-43 a30 30 0 0 0 -56 6 a20 20 0 0 0 -8 37z" fill="#ffffff" opacity="0.18"/>
+
+  <text x="400" y="420" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="46" font-weight="700" fill="#ffffff">Sonoff / eWeLink</text>
+  <text x="400" y="462" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="22" fill="#bfe6f1">for Gladys Assistant · local network first, cloud optional</text>
+</svg>

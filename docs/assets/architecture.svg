@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="460" viewBox="0 0 960 460" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <title>Architecture of the Sonoff / eWeLink integration</title>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10z" fill="#4a5a66"/>
+    </marker>
+  </defs>
+  <rect width="960" height="460" fill="#ffffff"/>
+
+  <!-- Gladys -->
+  <rect x="30" y="150" width="210" height="160" rx="14" fill="#e8f1fb" stroke="#2f6fb5" stroke-width="2"/>
+  <text x="135" y="190" text-anchor="middle" font-size="20" font-weight="700" fill="#1d4f86">Gladys Assistant</text>
+  <text x="135" y="220" text-anchor="middle" font-size="13" fill="#33424d">core, host network</text>
+  <text x="135" y="248" text-anchor="middle" font-size="13" fill="#33424d">devices · scenes · dashboards</text>
+  <text x="135" y="276" text-anchor="middle" font-size="13" fill="#33424d">mDNS browsing for the</text>
+  <text x="135" y="294" text-anchor="middle" font-size="13" fill="#33424d">container (scanNetwork)</text>
+
+  <!-- Container -->
+  <rect x="360" y="120" width="240" height="220" rx="14" fill="#eef8f1" stroke="#2e8b57" stroke-width="2"/>
+  <text x="480" y="156" text-anchor="middle" font-size="18" font-weight="700" fill="#1f6b41">Integration container</text>
+  <text x="480" y="178" text-anchor="middle" font-size="12" fill="#33424d">Node.js · integration-sdk · /data</text>
+  <rect x="380" y="194" width="200" height="34" rx="8" fill="#ffffff" stroke="#9cc9ad"/>
+  <text x="480" y="216" text-anchor="middle" font-size="13" fill="#33424d">manager: routing local / cloud</text>
+  <rect x="380" y="236" width="96" height="34" rx="8" fill="#ffffff" stroke="#9cc9ad"/>
+  <text x="428" y="258" text-anchor="middle" font-size="13" fill="#33424d">LAN client</text>
+  <rect x="484" y="236" width="96" height="34" rx="8" fill="#ffffff" stroke="#9cc9ad"/>
+  <text x="532" y="258" text-anchor="middle" font-size="13" fill="#33424d">cloud client</text>
+  <rect x="380" y="278" width="200" height="34" rx="8" fill="#ffffff" stroke="#9cc9ad"/>
+  <text x="480" y="300" text-anchor="middle" font-size="13" fill="#33424d">devices · scenes · widgets</text>
+
+  <!-- Gladys <-> container -->
+  <line x1="244" y1="205" x2="356" y2="205" stroke="#4a5a66" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="300" y="196" text-anchor="middle" font-size="12" fill="#4a5a66">WebSocket</text>
+  <text x="300" y="224" text-anchor="middle" font-size="11" fill="#6b7a85">commands, scans</text>
+  <line x1="356" y1="262" x2="244" y2="262" stroke="#4a5a66" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="300" y="253" text-anchor="middle" font-size="12" fill="#4a5a66">REST</text>
+  <text x="300" y="281" text-anchor="middle" font-size="11" fill="#6b7a85">/api/integration/v1/*</text>
+
+  <!-- LAN devices -->
+  <rect x="720" y="40" width="210" height="170" rx="14" fill="#fff8e6" stroke="#c9952b" stroke-width="2"/>
+  <text x="825" y="74" text-anchor="middle" font-size="17" font-weight="700" fill="#8a6414">Sonoff on the LAN</text>
+  <text x="825" y="102" text-anchor="middle" font-size="13" fill="#33424d">_ewelink._tcp (mDNS)</text>
+  <text x="825" y="124" text-anchor="middle" font-size="13" fill="#33424d">POST :8081/zeroconf/*</text>
+  <text x="825" y="146" text-anchor="middle" font-size="13" fill="#33424d">AES-128 (devicekey)</text>
+  <text x="825" y="168" text-anchor="middle" font-size="13" fill="#33424d">or clear text (DIY)</text>
+  <text x="825" y="192" text-anchor="middle" font-size="12" fill="#6b7a85">plugs · switches · lights...</text>
+
+  <!-- Cloud -->
+  <rect x="720" y="260" width="210" height="160" rx="14" fill="#f3eefb" stroke="#7a52b3" stroke-width="2"/>
+  <text x="825" y="294" text-anchor="middle" font-size="17" font-weight="700" fill="#57358a">eWeLink cloud</text>
+  <text x="825" y="320" text-anchor="middle" font-size="13" fill="#33424d">optional, your own App ID</text>
+  <text x="825" y="342" text-anchor="middle" font-size="13" fill="#33424d">OAuth 2.0 · REST v2</text>
+  <text x="825" y="364" text-anchor="middle" font-size="13" fill="#33424d">real-time WebSocket</text>
+  <text x="825" y="386" text-anchor="middle" font-size="12" fill="#6b7a85">keys · names · Zigbee</text>
+  <text x="825" y="404" text-anchor="middle" font-size="12" fill="#6b7a85">sub-devices · remote</text>
+
+  <!-- container <-> devices -->
+  <line x1="604" y1="240" x2="716" y2="150" stroke="#c9952b" stroke-width="2.5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <text x="650" y="176" text-anchor="middle" font-size="12" font-weight="700" fill="#8a6414">1. local</text>
+  <line x1="604" y1="262" x2="716" y2="330" stroke="#7a52b3" stroke-width="2" stroke-dasharray="7 5" marker-end="url(#arrow)" marker-start="url(#arrow)"/>
+  <text x="652" y="326" text-anchor="middle" font-size="12" font-weight="700" fill="#57358a">2. cloud</text>
+
+  <!-- mDNS relay -->
+  <path d="M135 150 C135 40, 700 30, 716 100" fill="none" stroke="#c9952b" stroke-width="1.5" stroke-dasharray="3 5" marker-end="url(#arrow)"/>
+  <text x="420" y="52" text-anchor="middle" font-size="12" fill="#8a6414">mDNS browsed by the core, records relayed to the container</text>
+</svg>

@@ -1,0 +1,34 @@
+{
+  "name": "gladys-sonoff-ewelink",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Gladys Assistant external integration for Sonoff / eWeLink devices: LAN first, eWeLink cloud optional.",
+  "homepage": "https://github.com/William-De71/gladys-sonoff-ewelink",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/William-De71/gladys-sonoff-ewelink.git"
+  },
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=22.4"
+  },
+  "dependencies": {
+    "@gladysassistant/integration-sdk": "^0.15.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.13.0",
+    "prettier": "^3.9.9"
+  },
+  "license": "Apache-2.0"
+}

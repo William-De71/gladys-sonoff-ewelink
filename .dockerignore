@@ -1,0 +1,23 @@
+# Only index.js, src/, the manifest, the licence and the dependencies go in
+# the image: no tests, docs, CI or development files.
+node_modules
+npm-debug.log*
+.git
+.gitattributes
+.gitignore
+.github
+.env
+.env.*
+data
+coverage
+test
+docs
+scripts
+*.md
+cover.jpg
+cover.svg
+eslint.config.js
+.prettierrc.json
+.prettierignore
+*.log
+.DS_Store
