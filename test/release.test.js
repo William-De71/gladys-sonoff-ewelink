@@ -214,16 +214,22 @@ test('excluded types, duplicates and reverted pairs leave no line', () => {
 });
 
 test('the starter 0.1.0 section is dated, not regenerated, and the first link added', async () => {
-  const text = await readFile(changelogPath, 'utf8');
+  // 0.1.0 is released: rebuild the starter changelog the project began with
+  // (undated section, no link) and check the release reproduces the real file.
+  const released = await readFile(changelogPath, 'utf8');
+  const text = released
+    .replace(/^## \[0\.1\.0\] - .*$/m, '## [0.1.0] - unreleased')
+    .replace(/\n\n\[0\.1\.0\]: .*\n$/, '\n');
   const updated = updateChangelog(text, {
     version: '0.1.0',
-    date: '2026-10-13',
+    date: '2026-10-12',
     commits: [commit('feat: something else entirely')],
     repoUrl: REPO,
   });
-  assert.match(updated, /^## \[0\.1\.0\] - 2026-10-13$/m);
+  assert.match(updated, /^## \[0\.1\.0\] - 2026-10-12$/m);
   assert.equal(releaseNotes(updated, '0.1.0'), releaseNotes(text, '0.1.0'));
   assert.ok(updated.endsWith(`[0.1.0]: ${REPO}/releases/tag/v0.1.0\n`));
+  assert.equal(updated, released);
   await assertPrettierClean(updated, changelogPath);
 });
 
