@@ -70,6 +70,33 @@ const SETTLED_CLOUD_STATUSES = new Set([
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+/** Host of a URL, for the logs (never the path nor the query: no token). */
+function hostOf(url) {
+  try {
+    return new URL(url).host;
+  } catch {
+    return '?';
+  }
+}
+
+/** One line describing the configuration, without any secret. */
+function describeConfig(config) {
+  const lan = config.local_enabled
+    ? `on (scan ${config.scan_interval} s, poll ${config.poll_interval} s)`
+    : 'off';
+  let cloud = config.cloud_mode;
+  if (config.cloud_mode !== CLOUD_MODES.NONE) {
+    const missing = [
+      !config.app_id && 'App ID',
+      !config.app_secret && 'App Secret',
+      config.cloud_mode === CLOUD_MODES.PASSWORD && !config.account && 'account',
+      config.cloud_mode === CLOUD_MODES.PASSWORD && !config.password && 'password',
+    ].filter(Boolean);
+    cloud += ` (region ${config.region}${missing.length ? `, missing: ${missing.join(', ')}` : ''}${config.session ? ', saved session' : ''})`;
+  }
+  return `Configuration: LAN ${lan}, cloud ${cloud}, prefer local ${config.GLADYS_PREFER_LOCAL ? 'yes' : 'no'}, ${config.localDevices.length} manual device(s)`;
+}
+
 export class Manager {
   /**
    * @param {object} options - Options.
@@ -135,6 +162,7 @@ export class Manager {
       return;
     }
     this.config = config;
+    logger.info(describeConfig(config));
     await this.quota.load();
     await this.loadCache();
     this.started = true;
@@ -163,6 +191,7 @@ export class Manager {
   async reconfigure(config) {
     const previous = this.config;
     this.config = config;
+    logger.info(describeConfig(config));
     this.applyManualDevices();
     this.scheduleLocal();
     const cloudChanged =
@@ -261,6 +290,10 @@ export class Manager {
       .filter(Boolean);
     if (this.gladys.connected) {
       await this.gladys.publishDiscoveredDevices(devices);
+      if (devices.length !== this.lastPublishedCount) {
+        this.lastPublishedCount = devices.length;
+        logger.info(`${devices.length} device(s) published to Gladys`);
+      }
     }
     return devices.length;
   }
@@ -273,13 +306,21 @@ export class Manager {
     let services;
     try {
       services = await this.gladys.scanNetwork('mdns', { timeoutSeconds: MDNS_SCAN_SECONDS });
+      if (this.lastScanError) {
+        logger.info('mDNS scan available again');
+      }
       this.lastScanError = null;
     } catch (error) {
       // 429: one scan at a time; 403: network discovery refused by the core.
-      this.lastScanError = error?.status ? `HTTP ${error.status}` : (error?.message ?? 'error');
-      logger.debug(`mDNS scan unavailable: ${this.lastScanError}`);
+      const reason = error?.status ? `HTTP ${error.status}` : (error?.message ?? 'error');
+      // Warn once per new reason: the scan runs every minute.
+      if (reason !== this.lastScanError) {
+        logger.warn(`mDNS scan unavailable (${reason}): LAN discovery relies on the Gladys core`);
+      }
+      this.lastScanError = reason;
       return this.lastScanCount;
     }
+    logger.debug(`mDNS scan: ${services?.length ?? 0} record(s) relayed by the core`);
     let count = 0;
     let newDevices = false;
     for (const service of services ?? []) {
@@ -297,6 +338,7 @@ export class Manager {
         continue;
       }
       const { entry, params } = result;
+      this.logLanSighting(message, entry, params);
       if (!hadUiid && entry.uiid !== undefined) {
         newDevices = true;
       }
@@ -307,12 +349,47 @@ export class Manager {
         newDevices = true;
       }
     }
+    if (count !== this.lastScanCount || this.scanLogged === undefined) {
+      logger.info(`mDNS scan: ${count} eWeLink device(s) found on the LAN`);
+      this.scanLogged = true;
+    }
     this.lastScanCount = count;
     if (newDevices) {
       await this.publishDevices();
     }
     await this.refreshReachability();
     return count;
+  }
+
+  /**
+   * Describe a device the first time the LAN shows it, and say why it is not
+   * usable yet: the questions a user asks when a device does not show up.
+   */
+  logLanSighting(message, entry, params) {
+    const main = this.registry.get(message.deviceid);
+    if (!main || main.memory.lanLogged) {
+      return;
+    }
+    main.memory.lanLogged = true;
+    const mode = message.encrypted ? 'encrypted' : 'DIY / clear text';
+    logger.info(
+      `LAN: ${message.deviceid} at ${message.host ?? 'unknown address'} (type ${message.localtype || '?'}, ${mode})`,
+    );
+    if (!message.host) {
+      logger.warn(`LAN: ${message.deviceid} announced no IP address: it cannot be polled`);
+    }
+    if (message.encrypted && !main.devicekey) {
+      logger.warn(
+        `LAN: ${message.deviceid} is encrypted and its devicekey is unknown: link the eWeLink cloud or add it by hand`,
+      );
+    } else if (message.encrypted && !params) {
+      logger.warn(`LAN: ${message.deviceid} cannot be decrypted: its devicekey looks wrong`);
+    }
+    if (main.uiid === undefined) {
+      logger.info(`LAN: ${message.deviceid} model unknown yet (not in the cloud list)`);
+    } else if (entry.capabilities.length > 0 && !entry.capabilities.some((c) => c.feature)) {
+      logger.info(`LAN: ${entry.deviceid} (UIID ${entry.uiid}) has no feature Gladys can use`);
+    }
   }
 
   /** Ask every LAN device for its state (unicast), a few at a time. */
@@ -358,21 +435,28 @@ export class Manager {
       command,
       timeoutMs: LOCAL_POLL_TIMEOUT_MS,
     });
-    this.recordLocal(target, answer.result === LOCAL_RESULT.ONLINE);
+    this.recordLocal(target, answer.result);
     if (answer.params) {
       await this.handleParams(entry, answer.params, 'local');
     }
   }
 
-  recordLocal(entry, ok) {
-    if (ok) {
+  recordLocal(entry, result) {
+    if (result === LOCAL_RESULT.ONLINE) {
+      if (entry.local.ok === false) {
+        logger.info(`LAN: ${entry.deviceid} answers again at ${entry.host}`);
+      }
       entry.local.ok = true;
       entry.local.fails = 0;
       entry.local.lastSeen = this.now();
       return;
     }
     entry.local.fails += 1;
-    if (entry.local.fails >= LOCAL_FAILS_OFFLINE) {
+    logger.debug(`LAN: ${entry.deviceid} at ${entry.host}: ${result} (${entry.local.fails})`);
+    if (entry.local.fails >= LOCAL_FAILS_OFFLINE && entry.local.ok !== false) {
+      logger.warn(
+        `LAN: ${entry.deviceid} at ${entry.host} not answering (${result}, ${entry.local.fails} tries)`,
+      );
       entry.local.ok = false;
     }
   }
@@ -671,12 +755,16 @@ export class Manager {
       } else {
         continue;
       }
+      logger.debug(`Command to ${entry.deviceid} via ${channel}: ${result}`);
       if (result === 'online') {
         await this.handleParams(entry, resolved.params, 'command');
         await this.refreshReachability();
         return { ok: true, via: channel, result };
       }
     }
+    logger.warn(
+      `Command to ${entry.deviceid} failed (${result}; LAN ${canLocal ? 'tried' : 'unavailable'}, cloud ${canCloud ? 'tried' : 'unavailable'})`,
+    );
     await this.refreshReachability();
     return { ok: false, result };
   }
@@ -692,7 +780,7 @@ export class Manager {
       // With a cloud fallback, do not keep the user waiting on a dead LAN.
       timeoutMs: quick ? 1500 : 5000,
     });
-    this.recordLocal(target, answer.result === LOCAL_RESULT.ONLINE);
+    this.recordLocal(target, answer.result);
     if (answer.params) {
       await this.handleParams(entry, answer.params, 'local');
     }
@@ -717,7 +805,7 @@ export class Manager {
     if (status === previous) {
       return;
     }
-    logger.info(`eWeLink cloud: ${previous} -> ${status}`);
+    logger.info(`eWeLink cloud: ${previous} -> ${status}${message ? ` (${message.en})` : ''}`);
     this.onWidgetChange('network_status');
     if (status === CLOUD_STATUS.CONNECTING) {
       return;
@@ -825,6 +913,7 @@ export class Manager {
       }
       await this.refreshCloudDevices();
       const url = await this.api.dispatch(this.session.at);
+      logger.info(`eWeLink cloud: opening the WebSocket (${hostOf(url)})`);
       await this.socket.connect({
         url,
         at: this.session.at,
@@ -885,6 +974,7 @@ export class Manager {
       this.connectCloud().catch((error) => this.handleCloudError(error));
     }, wait);
     this.timers.cloudRetry.unref?.();
+    logger.info(`eWeLink cloud: next attempt in ${Math.round(wait / 1000)} s`);
   }
 
   onSocketDisconnected() {
@@ -906,6 +996,7 @@ export class Manager {
     }
     if (session?.rt && (!session.rtExpiry || session.rtExpiry > this.now())) {
       try {
+        logger.info('eWeLink cloud: refreshing the access token');
         const tokens = await this.api.refresh(session.rt);
         await this.saveSession({
           ...session,
@@ -923,6 +1014,9 @@ export class Manager {
     }
     if (this.config.cloud_mode === CLOUD_MODES.PASSWORD) {
       try {
+        logger.info(
+          `eWeLink cloud: signing in (region ${this.config.region}, country code ${this.config.country_code})`,
+        );
         const login = await this.api.login(
           this.config.account,
           this.config.password,
@@ -939,6 +1033,7 @@ export class Manager {
           atExpiry: this.now() + PASSWORD_TOKEN_LIFETIME_MS,
           rtExpiry: this.now() + 2 * PASSWORD_TOKEN_LIFETIME_MS,
         });
+        logger.info(`eWeLink cloud: signed in, account region ${login.region}`);
         return;
       } catch (error) {
         if (error instanceof EwelinkError && !error.isQuotaError && error.code !== 'network') {
@@ -1003,16 +1098,24 @@ export class Manager {
     }
     this.oauthState = randomUUID();
     this.api = this.newApi();
+    logger.info(`eWeLink OAuth: authorization page requested (redirect ${hostOf(redirectUri)})`);
     return this.api.authorizeUrl(redirectUri, this.oauthState);
   }
 
   async oauthCallback({ code, state, redirectUri }) {
     if (!this.oauthState || state !== this.oauthState) {
+      logger.warn(
+        `eWeLink OAuth: callback ${this.oauthState ? 'with a wrong state' : 'without a pending authorization'} (integration restarted in between?)`,
+      );
       this.setCloudStatus(CLOUD_STATUS.AUTH_REQUIRED, t('oauthStateMismatch'));
       throw new Error('OAuth state mismatch');
     }
     this.oauthState = null;
-    const tokens = await this.api.exchangeCode(code, redirectUri);
+    logger.info('eWeLink OAuth: exchanging the authorization code');
+    const tokens = await this.api.exchangeCode(code, redirectUri).catch((error) => {
+      logger.warn(`eWeLink OAuth: code refused: ${error?.message ?? error}`);
+      throw error;
+    });
     await this.saveSession({
       mode: CLOUD_MODES.OAUTH,
       appId: this.config.app_id,

@@ -19,6 +19,11 @@ gladys.handleShutdown(async (signal) => {
 });
 
 logger.info('Starting the Sonoff / eWeLink integration...');
+// The address is the Gladys core seen from the integration's Docker network
+// (its gateway, e.g. 172.30.0.1), set by Gladys: users ask where it comes from.
+logger.info(
+  `Gladys core at ${process.env.GLADYS_HOST_API_URL ?? '(not set)'} (Docker network of the integration), Node ${process.version}`,
+);
 gladys.connect().catch((error) => {
   logger.error('Initial connection failed', error);
   process.exit(1);
