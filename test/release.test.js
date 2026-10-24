@@ -113,7 +113,10 @@ test('package.json, package-lock.json and the manifest always move together', as
       readFile(path(file), 'utf8'),
     ),
   );
-  const version = '0.2.0';
+  // The next minor of the current version: a fixed version would be taken by
+  // the release that publishes it.
+  const [major, minor] = JSON.parse(pkg).version.split('.').map(Number);
+  const version = `${major}.${minor + 1}.0`;
   const image = `ghcr.io/william-de71/gladys-sonoff-ewelink:${version}`;
   const bumped = {
     pkg: bumpPackage(pkg, version),
@@ -234,7 +237,12 @@ test('the starter 0.1.0 section is dated, not regenerated, and the first link ad
 });
 
 test('a new section goes on top with its comparison link, and is idempotent', async () => {
-  const start = updateChangelog(await readFile(changelogPath, 'utf8'), {
+  // The file as released in 0.1.0: the later sections and their links removed.
+  const current = await readFile(changelogPath, 'utf8');
+  const released = (
+    current.slice(0, current.indexOf('## [')) + current.slice(current.indexOf('## [0.1.0]'))
+  ).replace(/^\[(?!0\.1\.0\])\d+\.\d+\.\d+\]: .*\n/gm, '');
+  const start = updateChangelog(released, {
     version: '0.1.0',
     date: '2026-10-13',
     commits: [],
