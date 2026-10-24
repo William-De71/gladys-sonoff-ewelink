@@ -1,6 +1,6 @@
 {
   "name": "gladys-sonoff-ewelink",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "description": "Gladys Assistant external integration for Sonoff / eWeLink devices: LAN first, eWeLink cloud optional.",
   "homepage": "https://github.com/William-De71/gladys-sonoff-ewelink",
