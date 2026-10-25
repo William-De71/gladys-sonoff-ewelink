@@ -64,8 +64,8 @@ test('every scene trigger the code fires is declared, and vice versa', () => {
 
 test('gladys_version covers the fields the manifest uses', () => {
   // categories: 4.86.0; widgets and scenes: 5.1.0; a `secret` field in an
-  // action form is only typed in from 5.2.0 (Gladys #3154).
-  assert.ok(isAtLeast(minGladysVersion(), [5, 2, 0]));
+  // action form is only typed in from 5.2.0 (Gladys #3154); keywords: 5.3.0.
+  assert.ok(isAtLeast(minGladysVersion(), [5, 3, 0]));
   const secretInAction = manifest.actions.some((action) =>
     (action.fields ?? []).some((field) => field.type === 'secret'),
   );
@@ -153,4 +153,17 @@ test('scene action fields and outputs respect the store limits', () => {
     assert.ok((trigger.variables ?? []).length <= 20);
     assert.ok(!(trigger.fields ?? []).some((field) => field.type === 'boolean'));
   }
+});
+
+test('catalog search terms of Gladys 5.3.0: keywords within bounds, countries', () => {
+  assert.ok(Array.isArray(manifest.keywords));
+  assert.ok(manifest.keywords.length >= 1 && manifest.keywords.length <= 10);
+  const normalized = manifest.keywords.map((keyword) => keyword.trim().toLowerCase());
+  for (const keyword of normalized) {
+    assert.ok(keyword.length >= 2 && keyword.length <= 30, keyword);
+  }
+  assert.equal(new Set(normalized).size, normalized.length, 'keywords must be unique');
+  assert.ok(!normalized.includes(manifest.name.toLowerCase()), 'the name is already searched');
+  // Usable worldwide: no `countries` restriction.
+  assert.equal(manifest.countries, undefined);
 });

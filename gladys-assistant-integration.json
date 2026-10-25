@@ -10,9 +10,21 @@
   },
   "version": "0.2.1",
   "docker_image": "ghcr.io/william-de71/gladys-sonoff-ewelink:0.2.1",
-  "gladys_version": ">=5.2.0",
+  "gladys_version": ">=5.3.0",
   "cover_image": "https://raw.githubusercontent.com/William-De71/gladys-sonoff-ewelink/main/cover.jpg",
   "categories": ["lighting", "energy", "climate"],
+  "keywords": [
+    "ITEAD",
+    "CoolKit",
+    "Sonoff Basic",
+    "Sonoff Mini",
+    "POWR3",
+    "NSPanel",
+    "TX Ultimate",
+    "ZBMINI",
+    "TRVZB",
+    "Zigbee"
+  ],
   "transports": ["local", "cloud"],
   "network_discovery": [{ "type": "mdns", "service": "_ewelink._tcp" }],
   "config_schema": [

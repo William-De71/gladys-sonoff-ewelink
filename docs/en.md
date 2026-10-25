@@ -34,7 +34,7 @@ siren, water valves and the RF Bridge 433.
 
 ## Prerequisites
 
-- Gladys Assistant **5.2.0** or later.
+- Gladys Assistant **5.3.0** or later.
 - Devices on the original eWeLink firmware (or in DIY mode), on the same
   network as the Gladys server: mDNS must reach it (no VLAN isolation, no
   client isolation on the Wi-Fi).

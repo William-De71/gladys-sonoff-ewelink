@@ -36,7 +36,7 @@ RF Bridge 433.
 
 ## Prérequis
 
-- Gladys Assistant **5.2.0** ou ultérieur.
+- Gladys Assistant **5.3.0** ou ultérieur.
 - Des appareils sous le firmware eWeLink d'origine (ou en mode DIY), sur le
   même réseau que le serveur Gladys : le mDNS doit l'atteindre (pas d'isolation
   par VLAN ni d'isolation des clients sur le Wi-Fi).

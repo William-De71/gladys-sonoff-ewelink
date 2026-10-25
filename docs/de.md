@@ -36,7 +36,7 @@ Wasserventile und die RF Bridge 433.
 
 ## Voraussetzungen
 
-- Gladys Assistant **5.2.0** oder neuer.
+- Gladys Assistant **5.3.0** oder neuer.
 - Geräte mit der originalen eWeLink-Firmware (oder im DIY-Modus) im selben
   Netzwerk wie der Gladys-Server: mDNS muss ihn erreichen (keine Trennung durch
   VLAN, keine Client-Isolation im WLAN).
