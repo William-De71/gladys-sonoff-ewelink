@@ -1,22 +1,17 @@
-#!/usr/bin/env sh
-# Render cover.svg to cover.jpg: exactly 800x534, JPEG, under 150 KB (store
-# rules). Needs Inkscape (or rsvg-convert) and ImageMagick.
-set -eu
+#!/usr/bin/env bash
+# Builds cover.jpg (800 x 534, < 150 KB, as the integration store requires)
+# from cover.svg. The SVG is self-contained: text is already converted to paths
+# and the brand logo (a trademark of its owner, used only to name the service
+# this unofficial integration connects to) is embedded. Needs Inkscape and
+# ImageMagick.
+set -euo pipefail
 cd "$(dirname "$0")/.."
-
-tmp="$(mktemp -d)"
-trap 'rm -rf "$tmp"' EXIT
-
-if command -v rsvg-convert >/dev/null 2>&1; then
-  rsvg-convert -w 800 -h 534 cover.svg -o "$tmp/cover.png"
-else
-  inkscape cover.svg --export-type=png --export-width=800 --export-height=534 \
-    --export-filename="$tmp/cover.png" >/dev/null 2>&1
-fi
-magick "$tmp/cover.png" -resize '800x534!' -strip -sampling-factor 4:2:0 -quality 86 cover.jpg
-
-size="$(wc -c < cover.jpg)"
-dimensions="$(magick identify -format '%wx%h' cover.jpg)"
-echo "cover.jpg: ${dimensions}, ${size} bytes"
-[ "$dimensions" = "800x534" ] || { echo "wrong dimensions" >&2; exit 1; }
-[ "$size" -lt 153600 ] || { echo "over 150 KB" >&2; exit 1; }
+tmp="$(mktemp --suffix=.png)"
+trap 'rm -f "$tmp"' EXIT
+inkscape cover.svg --export-type=png --export-filename="$tmp" -w 800 -h 534 >/dev/null 2>&1
+magick "$tmp" -strip -quality 86 -sampling-factor 4:2:0 cover.jpg
+size="$(stat -c %s cover.jpg)"
+dims="$(magick identify -format '%wx%h' cover.jpg)"
+echo "cover.jpg: ${dims}, ${size} bytes"
+[ "$dims" = "800x534" ] || { echo "wrong dimensions" >&2; exit 1; }
+[ "$size" -lt $((150 * 1024)) ] || { echo "too heavy" >&2; exit 1; }
