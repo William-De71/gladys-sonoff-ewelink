@@ -1121,6 +1121,7 @@ export class Manager {
       appId: this.config.app_id,
       at: tokens.at,
       rt: tokens.rt,
+      apikey: tokens.apikey,
       atExpiry: tokens.atExpiry || this.now() + PASSWORD_TOKEN_LIFETIME_MS,
       rtExpiry: tokens.rtExpiry || this.now() + 2 * PASSWORD_TOKEN_LIFETIME_MS,
       region: tokens.region,

@@ -116,7 +116,8 @@ export class CloudApi {
       throw new EwelinkError('invalid', 'invalid JSON answer');
     }
     if (json.error !== 0) {
-      throw new EwelinkError(json.error, json.msg, json.data);
+      // The path tells which call failed (a free App ID only reaches a few).
+      throw new EwelinkError(json.error, `${json.msg ?? ''} (${method} ${path})`.trim(), json.data);
     }
     return json.data ?? {};
   }
@@ -145,7 +146,9 @@ export class CloudApi {
    * Exchange an OAuth authorization code. eWeLink tells the account region in
    * the redirect, which Gladys does not relay: the configured region is tried
    * first, then the others (the code stays valid 30 s).
-   * @returns {Promise<{ at: string, rt: string, atExpiry: number, rtExpiry: number, region: string }>}
+   * The answer also holds the account apikey (`user.apikey`), needed by the
+   * WebSocket: a free App ID may not call /v2/user/profile (error 407).
+   * @returns {Promise<{ at: string, rt: string, apikey?: string, atExpiry: number, rtExpiry: number, region: string }>}
    */
   async exchangeCode(code, redirectUrl) {
     const body = { code, redirectUrl, grantType: 'authorization_code' };
@@ -161,6 +164,7 @@ export class CloudApi {
         return {
           at: data.accessToken,
           rt: data.refreshToken,
+          apikey: data.user?.apikey,
           atExpiry: Number(data.atExpiredTime) || 0,
           rtExpiry: Number(data.rtExpiredTime) || 0,
           region,
@@ -211,10 +215,14 @@ export class CloudApi {
     return { at: data.at, rt: data.rt };
   }
 
-  /** Account apikey, needed by the WebSocket handshake. */
+  /**
+   * Account apikey, needed by the WebSocket handshake. Read from the home list:
+   * /v2/user/profile is not among the routes opened to the free (OAuth) App IDs
+   * and answers 407 there.
+   */
   async getApikey(at) {
-    const data = await this.request('GET', '/v2/user/profile', { at });
-    return data.user?.apikey;
+    const data = await this.request('GET', '/v2/family', { at, query: { lang: 'en' } });
+    return (data.familyList ?? []).find((home) => home.apikey)?.apikey;
   }
 
   /** Homes of the account: `{ id: name }`. */

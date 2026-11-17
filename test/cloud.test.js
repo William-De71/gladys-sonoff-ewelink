@@ -27,7 +27,8 @@ test('requests before login are signed, the others carry the token', async () =>
   const fetch = fakeFetch(cloudRoutes([]));
   const counted = [];
   const api = new CloudApi({ ...APP, fetch, onRequest: () => counted.push(1) });
-  await api.exchangeCode('code-1', 'https://redirect');
+  const tokens = await api.exchangeCode('code-1', 'https://redirect');
+  assert.equal(tokens.apikey, 'user-apikey', 'the apikey comes with the OAuth token');
   const [token] = fetch.calls;
   assert.equal(token.url.origin, 'https://eu-apia.coolkit.cc');
   assert.equal(token.headers['X-CK-Appid'], APP.appId);
@@ -38,6 +39,21 @@ test('requests before login are signed, the others carry the token', async () =>
   await api.getApikey('at-1');
   assert.equal(fetch.calls[1].headers.Authorization, 'Bearer at-1');
   assert.equal(counted.length, 2, 'every API call is counted for the monthly quota');
+});
+
+test('the apikey is read from the home list, not the profile (407 for a free App ID)', async () => {
+  const fetch = fakeFetch(cloudRoutes([]));
+  const api = new CloudApi({ ...APP, fetch });
+  assert.equal(await api.getApikey('at'), 'user-apikey');
+  assert.deepEqual(
+    fetch.calls.map((call) => call.url.pathname),
+    ['/v2/family'],
+  );
+  await assert.rejects(api.request('GET', '/v2/user/profile', { at: 'at' }), (error) => {
+    assert.equal(error.code, 407);
+    assert.match(error.message, /\(GET \/v2\/user\/profile\)$/, 'the failing call is named');
+    return true;
+  });
 });
 
 test('the OAuth code is tried in the other regions when the configured one refuses it', async () => {
@@ -123,12 +139,14 @@ test('the device list merges every home and skips the groups', async () => {
 test('API errors carry their eWeLink code', async () => {
   const fetch = fakeFetch(
     cloudRoutes([], {
-      'GET /v2/user/profile': () => ({ error: 402, msg: 'token expired', data: {} }),
-      'GET /v2/family': () => ({ httpStatus: 403 }),
+      'GET /v2/family': ({ headers }) =>
+        headers.Authorization === 'Bearer old'
+          ? { error: 402, msg: 'token expired', data: {} }
+          : { httpStatus: 403 },
     }),
   );
   const api = new CloudApi({ ...APP, fetch });
-  await assert.rejects(api.getApikey('at'), (error) => {
+  await assert.rejects(api.getApikey('old'), (error) => {
     assert.ok(error instanceof EwelinkError);
     assert.equal(error.isAuthError, true);
     return true;

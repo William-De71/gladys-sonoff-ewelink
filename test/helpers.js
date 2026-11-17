@@ -158,6 +158,8 @@ export function cloudRoutes(devices, overrides = {}) {
       data: {
         accessToken: 'at-1',
         refreshToken: 'rt-1',
+        region: 'eu',
+        user: { apikey: 'user-apikey', countryCode: '+33' },
         atExpiredTime: Date.now() + 30 * 86_400_000,
         rtExpiredTime: Date.now() + 60 * 86_400_000,
       },
@@ -167,8 +169,16 @@ export function cloudRoutes(devices, overrides = {}) {
       data: { at: 'at-pw', rt: 'rt-pw', user: { apikey: 'user-apikey' }, region: 'eu' },
     }),
     'POST /v2/user/refresh': () => ({ error: 0, data: { at: 'at-2', rt: 'rt-2' } }),
-    'GET /v2/user/profile': () => ({ error: 0, data: { user: { apikey: 'user-apikey' } } }),
-    'GET /v2/family': () => ({ error: 0, data: { familyList: [{ id: 'home-1', name: 'Home' }] } }),
+    // Like the real cloud for a free App ID: the profile route is not opened.
+    'GET /v2/user/profile': () => ({
+      error: 407,
+      msg: 'the path of request is not allowed with appid:app-id',
+      data: {},
+    }),
+    'GET /v2/family': () => ({
+      error: 0,
+      data: { familyList: [{ id: 'home-1', apikey: 'user-apikey', name: 'Home' }] },
+    }),
     'GET /v2/device/thing': () => ({
       error: 0,
       data: { thingList: devices.map((itemData) => ({ itemType: 1, itemData })) },

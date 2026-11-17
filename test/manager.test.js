@@ -223,6 +223,10 @@ test('OAuth: the account is linked, the devices listed and followed in real time
   assert.equal(session.at, 'at-1');
   assert.equal(session.apikey, 'user-apikey');
   assert.ok(
+    !fetch.calls.some((call) => call.url.pathname === '/v2/user/profile'),
+    'the profile route answers 407 to a free App ID: never called',
+  );
+  assert.ok(
     !fetch.calls.some((call) => JSON.stringify(call).includes('my-app-secret')),
     'secret never sent',
   );
@@ -342,6 +346,22 @@ test('a device lost on both channels fires device_connection_changed', async (t)
   lan.devices.get('192.168.1.60').online = true;
   await manager.pollLocal();
   assert.equal(gladys.fake.sceneEvents.at(-1).data.status, 'online');
+});
+
+test('OAuth: without apikey in the token answer, it comes from the home list (forum 11605)', async (t) => {
+  const { gladys, manager, integration, fetch } = await connectOauth({
+    routes: {
+      'POST /v2/user/oauth/token': () => ({
+        error: 0,
+        data: { accessToken: 'at-1', refreshToken: 'rt-1' },
+      }),
+    },
+  });
+  t.after(() => integration.shutdown());
+  assert.equal(manager.cloudStatus, CLOUD_STATUS.CONNECTED);
+  assert.equal(JSON.parse(gladys.fake.config[SESSION_KEY]).apikey, 'user-apikey');
+  assert.ok(!fetch.calls.some((call) => call.url.pathname === '/v2/user/profile'));
+  assert.ok(gladys.fake.discoveredDevices.some((d) => d.name === 'Kitchen plug'));
 });
 
 test('a Zigbee button press reaches the scenes, a replay does not', async (t) => {
