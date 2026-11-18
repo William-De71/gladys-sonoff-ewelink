@@ -53,6 +53,10 @@ test('every UIID of the catalog publishes devices Gladys accepts', async () => {
     assert.equal(new Set(ids).size, ids.length, `${device.name}: duplicate feature keys`);
     for (const feature of device.features) {
       assert.equal(typeof feature.read_only, 'boolean', `${device.name} ${feature.name}`);
+      // NOT NULL columns in the core: the fake Gladys does not check them.
+      assert.equal(typeof feature.min, 'number', `${device.name} ${feature.name}: min`);
+      assert.equal(typeof feature.max, 'number', `${device.name} ${feature.name}: max`);
+      assert.ok(feature.min <= feature.max, `${device.name} ${feature.name}: min > max`);
       if (feature.supported_options) {
         for (const option of feature.supported_options) {
           assert.equal(typeof option.label, 'string');

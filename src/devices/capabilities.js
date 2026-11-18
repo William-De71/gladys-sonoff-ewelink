@@ -194,6 +194,9 @@ function startupFeature(name) {
     name,
     category: CAT.TEXT,
     type: TYPE.TEXT.SELECT,
+    // NOT NULL in the core, even for a select (see SENSOR_RANGES).
+    min: 0,
+    max: 0,
     read_only: false,
     has_feedback: true,
     keep_history: false,
@@ -272,6 +275,30 @@ const SENSOR_KINDS = {
   raw: [CAT.UNKNOWN, TYPE.UNKNOWN.UNKNOWN, undefined, 'Value'],
 };
 
+// The core refuses a feature without min and max (NOT NULL columns). It never
+// clamps states with them: they only describe the expected range.
+const SENSOR_RANGES = {
+  temperature: [-50, 150],
+  probe: [-50, 300],
+  device_temperature: [-50, 150],
+  humidity: [0, 100],
+  power: [0, 100000],
+  current: [0, 1000],
+  voltage: [0, 1000],
+  production_power: [0, 100000],
+  battery: [0, 100],
+  co2: [0, 10000],
+  pm25: [0, 1000],
+  pm10: [0, 1000],
+  pressure: [300, 1100],
+  illuminance: [0, 200000],
+  light_level: [0, 10],
+  noise: [0, 150],
+  minutes: [0, 1440],
+  percent: [0, 100],
+};
+const DEFAULT_SENSOR_RANGE = [0, 1000000000];
+
 /**
  * Numeric sensor reading one parameter.
  * @param {string} param - eWeLink parameter.
@@ -284,6 +311,7 @@ const SENSOR_KINDS = {
  */
 export function sensor(param, { kind = param, key = param, name, multiply, pick, valid } = {}) {
   const [category, type, unit, defaultName] = SENSOR_KINDS[kind];
+  const [min, max] = SENSOR_RANGES[kind] ?? DEFAULT_SENSOR_RANGE;
   return {
     key,
     watch: [param],
@@ -292,6 +320,8 @@ export function sensor(param, { kind = param, key = param, name, multiply, pick,
       category,
       type,
       ...(unit ? { unit } : {}),
+      min,
+      max,
       ...sensorFields,
     },
     read(cache) {
