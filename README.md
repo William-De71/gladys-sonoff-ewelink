@@ -233,10 +233,7 @@ Every merge on `main` releases automatically when the commits deserve it:
 - **1.0.0** is the maintainer's decision: Actions → Release → Run workflow,
   `release-as: 1.0.0`. The `dry-run` input shows the version and the changelog
   in the job summary without publishing anything.
-- **Protected main branch**: the release commit is pushed by GitHub Actions.
-  Add "GitHub Actions" to the bypass list of the rule (Settings → Rules), or
-  use a GitHub App token; otherwise the push is refused and nothing is
-  published.
+- **Protected branch**: rulesets require a pull request on `main` and lock the `v*` tags; only the maintainer and deploy keys get through. The release pushes with the deploy key of the `release` environment (secret `RELEASE_DEPLOY_KEY`, `main` only): a run from another branch never gets it. `build.yml` and `github-release.yml` do not start on a tag: the release calls them, or run them by hand (Actions → Run workflow, with `version` for the image) to finish a release.
 
 ## Troubleshooting
 

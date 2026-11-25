@@ -239,10 +239,7 @@ rechtfertigen:
 - **1.0.0** entscheidet der Maintainer: Actions → Release → Run workflow,
   `release-as: 1.0.0`. Die Eingabe `dry-run` zeigt Version und Changelog in der
   Job-Zusammenfassung, ohne etwas zu veröffentlichen.
-- **Geschützter main-Zweig**: Der Release-Commit wird von GitHub Actions
-  gepusht. Fügen Sie „GitHub Actions“ der Ausnahmeliste der Regel hinzu
-  (Settings → Rules) oder nutzen Sie das Token einer GitHub App; sonst wird der
-  Push abgelehnt und nichts veröffentlicht.
+- **Geschützter Branch**: Rulesets verlangen einen Pull Request auf `main` und sperren die `v*`-Tags; nur der Maintainer und Deploy Keys kommen durch. Das Release pusht mit dem Deploy Key der Umgebung `release` (Secret `RELEASE_DEPLOY_KEY`, nur `main`): Ein Lauf von einem anderen Branch erhält ihn nie. `build.yml` und `github-release.yml` starten nicht bei einem Tag: Das Release ruft sie auf, oder starten Sie sie von Hand (Actions → Run workflow, mit `version` für das Image), um ein Release abzuschließen.
 
 ## Fehlerbehebung
 

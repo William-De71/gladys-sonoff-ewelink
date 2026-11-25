@@ -236,10 +236,7 @@ Chaque merge sur `main` publie une version quand les commits le justifient :
 - **1.0.0** se décide à la main : Actions → Release → Run workflow,
   `release-as: 1.0.0`. L'entrée `dry-run` affiche la version et le changelog
   dans le résumé du job sans rien publier.
-- **Branche main protégée** : le commit de release est poussé par GitHub
-  Actions. Ajoutez « GitHub Actions » à la liste de contournement de la règle
-  (Settings → Rules), ou utilisez le jeton d'une GitHub App ; sinon le push est
-  refusé et rien n'est publié.
+- **Branche protégée** : des rulesets imposent une pull request sur `main` et verrouillent les tags `v*` ; seuls le mainteneur et les deploy keys passent. La release pousse avec la deploy key de l’environnement `release` (secret `RELEASE_DEPLOY_KEY`, `main` seulement) : un run lancé depuis une autre branche ne l’obtient jamais. `build.yml` et `github-release.yml` ne démarrent pas sur un tag : la release les appelle, ou lancez-les à la main (Actions → Run workflow, avec `version` pour l’image) pour terminer une release.
 
 ## Dépannage
 

@@ -238,10 +238,7 @@ Cada merge en `main` publica una versión cuando los commits lo justifican:
 - **1.0.0** lo decide el mantenedor: Actions → Release → Run workflow,
   `release-as: 1.0.0`. La entrada `dry-run` muestra la versión y el changelog
   en el resumen del job sin publicar nada.
-- **Rama main protegida**: el commit de publicación lo envía GitHub Actions.
-  Añada «GitHub Actions» a la lista de excepciones de la regla (Settings →
-  Rules) o use el token de una GitHub App; si no, el push se rechaza y no se
-  publica nada.
+- **Rama protegida**: unos rulesets exigen una pull request en `main` y bloquean las etiquetas `v*`; solo pasan el mantenedor y las deploy keys. La publicación hace push con la deploy key del entorno `release` (secreto `RELEASE_DEPLOY_KEY`, solo `main`): una ejecución lanzada desde otra rama nunca la obtiene. `build.yml` y `github-release.yml` no arrancan con una etiqueta: la publicación los llama, o lánzelos a mano (Actions → Run workflow, con `version` para la imagen) para terminar una publicación.
 
 ## Solución de problemas
 
